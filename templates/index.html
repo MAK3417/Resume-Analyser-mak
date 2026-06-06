@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Analyzer</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <main class="page-shell">
+        <section class="hero">
+            <div class="hero-content">
+                <h1>AI Resume Analyzer</h1>
+                <p class="tagline">
+                    Find Skill Gaps • Get AI Feedback • Improve Your Career
+                </p>
+            </div>
+            <div class="hero-meta">
+                <span>Built with Flask</span>
+                <span>Real-time skill matching</span>
+                <span>Professional feedback</span>
+            </div>
+        </section>
+
+        <div class="hero">
+            <h2>Get Hired Faster With AI</h2>
+            <p>
+               Upload your resume, compare it with job descriptions,
+               discover missing skills and improve your chances instantly.
+            </p>
+        </div>
+
+        <section class="form-panel">
+            <form method="post" enctype="multipart/form-data" class="analyzer-form">
+                <div class="field-group">
+                    <label for="resume">Resume</label>
+                    <textarea id="resume" name="resume" rows="10" placeholder="Paste your resume here...">{{ resume }}</textarea>
+                </div>
+
+                <div class="field-group">
+                    <label for="job">Job Description</label>
+                    <textarea id="job" name="job" rows="10" placeholder="Paste the job description here...">{{ job }}</textarea>
+                </div>
+
+                <div class="field-group">
+                    <label for="photo">Resume Photo</label>
+                    <input id="photo" name="photo" type="file" accept="image/png, image/jpeg, image/jpg, image/gif">
+                </div>
+
+                <button type="submit">Analyze Resume</button>
+            </form>
+
+            {% if error %}
+                <div class="toast toast-error">{{ error }}</div>
+            {% endif %}
+        </section>
+
+        {% if analysis %}
+        <section class="result-panel">
+            {% if photo_url %}
+            <div class="photo-preview">
+                <img src="{{ photo_url }}" alt="Uploaded resume photo">
+            </div>
+            {% endif %}
+            <div class="result-header">
+                <div class="d-flex flex-column align-items-center gap-3 mb-4">
+                    <h2>Match Score</h2>
+                    <div class="score-circle position-relative d-flex align-items-center justify-content-center">
+                        <span class="score-value">{{ analysis.score }}%</span>
+                        <svg viewBox="0 0 120 120" class="score-ring">
+                            <defs>
+                                <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="#4f67e2" />
+                                    <stop offset="100%" stop-color="#26c0ff" />
+                                </linearGradient>
+                            </defs>
+                            <circle class="score-ring-bg" cx="60" cy="60" r="52" />
+                            <circle class="score-ring-fill" cx="60" cy="60" r="52" stroke="url(#scoreGradient)" stroke-dasharray="326.72" stroke-dashoffset="{{ 326.72 - (analysis.score / 100) * 326.72 }}" />
+                        </svg>
+                    </div>
+                    <div class="score-rank mt-3 text-center text-uppercase text-muted">{{ analysis.rank }}</div>
+                </div>
+            </div>
+
+            <div class="result-grid">
+                <div class="card">
+                    <h3>Matched Skills</h3>
+                    {% if analysis.matched %}
+                        <ul class="skill-list matched">
+                            {% for skill in analysis.matched %}
+                                <li>{{ skill }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="empty-state">No matched skills detected.</p>
+                    {% endif %}
+                </div>
+
+                <div class="card">
+                    <h3>Missing Skills</h3>
+                    {% if analysis.missing %}
+                        <ul class="skill-list missing">
+                            {% for skill in analysis.missing %}
+                                <li>{{ skill }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="empty-state">Your resume already includes all recognized job skills.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="recommendation-card">
+                <h3>Recommendation</h3>
+                <p>{{ analysis.recommendation }}</p>
+                {% if analysis.ai_feedback %}
+                <div class="ai-feedback mt-3">
+                    <pre style="white-space: pre-wrap; margin:0;">{{ analysis.ai_feedback }}</pre>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h4>📚 AI Learning Roadmap</h4>
+
+                    {% if analysis.learning_roadmap %}
+                    <div class="learning-roadmap">
+                        <ul class="list-unstyled mb-0">
+                        {% for step in analysis.learning_roadmap %}
+                            <li class="roadmap-step">🚀 {{ step }}</li>
+                        {% endfor %}
+                        </ul>
+                    </div>
+                    {% else %}
+                    <p>No additional learning required.</p>
+                    {% endif %}
+
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+        <section class="note-panel">
+            <h4>Supported Skills</h4>
+            <p>{{ skills | join(', ') }}</p>
+        </section>
+    </main>
+</body>
+</html>
